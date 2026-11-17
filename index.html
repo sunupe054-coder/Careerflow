@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerFlow - Staj & İş Başvuru Takipçisi</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --gray: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        /* Kart Tasarımları */
+        .card { background: var(--card-bg); border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1, h2 { margin-bottom: 16px; color: var(--primary); }
+        
+        /* Form Elemanları */
+        input, select, textarea { width: 100%; padding: 10px 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+        button { background-color: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; width: 100%; transition: background 0.2s; }
+        button:hover { background-color: var(--primary-hover); }
+        .btn-danger { background-color: var(--danger); width: auto; padding: 6px 12px; font-size: 12px; }
+        .btn-danger:hover { background-color: #dc2626; }
+
+        /* Listeleme */
+        .application-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
+        .application-item:last-child { border-bottom: none; }
+        
+        /* Gizleme sınıfları */
+        .hidden { display: none !important; }
+        
+        /* AI Kutusu */
+        .ai-box { background: #e0e7ff; border-left: 4px solid var(--primary); padding: 14px; border-radius: 4px; margin-top: 15px; font-size: 14px; }
+        .badge { background: #c7d2fe; color: #312e81; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
+        
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .user-info { font-size: 14px; color: var(--gray); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- GİRİŞ EKRANI -->
+    <div id="auth-screen" class="card">
+        <h1>CareerFlow 🚀</h1>
+        <p style="margin-bottom: 16px; color: var(--gray);">Staj ve iş başvurularınızı kolayca takip edin, yapay zekâ ile ön yazılar oluşturun.</p>
+        <div id="auth-error" style="color: var(--danger); font-size: 13px; margin-bottom: 10px;"></div>
+        <input type="email" id="email-input" placeholder="E-posta adresiniz (Örn: test@mail.com)">
+        <input type="password" id="password-input" placeholder="Şifreniz (En az 6 karakter)">
+        <button onclick="handleAuth()">Giriş Yap / Kayıt Ol</button>
+    </div>
+
+    <!-- ANA UYGULAMA EKRANI -->
+    <div id="app-screen" class="hidden">
+        <div class="header-bar card" style="margin-bottom: 15px; padding: 15px 24px;">
+            <div>
+                <h2>CareerFlow Paneli</h2>
+                <span class="user-info" id="current-user-display">Giriş yapan: -</span>
+            </div>
+            <button onclick="handleLogout()" style="width: auto; background-color: var(--gray);">Çıkış Yap</button>
+        </div>
+
+        <!-- BAŞVURU EKLEME -->
+        <div class="card">
+            <h2>Yeni Başvuru Ekle</h2>
+            <input type="text" id="company-input" placeholder="Şirket Adı (Örn: Tech Şirketi)">
+            <input type="text" id="position-input" placeholder="Pozisyon (Örn: Yazı Stajyeri / Frontend Developer)">
+            <select id="status-input">
+                <option value="Başvuru Yapıldı">Başvuru Yapıldı</option>
+                <option value="Mülakat Aşamasında">Mülakat Aşamasında</option>
+                <option value="Kabul Edildi 🎉">Kabul Edildi 🎉</option>
+                <option value="Reddedildi">Reddedildi</option>
+            </select>
+            <button onclick="addApplication()">Başvuru Kaydet</button>
+        </div>
+
+        <!-- YAPAY ZEKÂ ÖN YAZI ASİSTANI -->
+        <div class="card">
+            <h2>✨ Yapay Zekâ Ön Yazı Asistanı</h2>
+            <p style="font-size: 13px; color: var(--gray); margin-bottom: 10px;">Hedeflediğin pozisyonu yaz, Gemini senin için profesyonel kısa bir ön yazı taslağı oluştursun.</p>
+            <input type="text" id="ai-target-position" placeholder="Hedeflenen Pozisyon (Örn: Yönetim Bilişim Sistemleri Stajyeri)">
+            <button onclick="generateAILetter()" style="background-color: #059669;">Ön Yazı Taslağı Oluştur</button>
+            
+            <div id="ai-loading" class="hidden" style="margin-top: 10px; font-size: 13px; color: var(--primary);">Yapay zekâ yanıt hazırlıyor...</div>
+            <div id="ai-result" class="ai-box hidden">
+                <span class="badge">Yapay Zekâ Önerisidir, Kontrol Ediniz</span>
+                <p id="ai-text-content"></p>
+            </div>
+        </div>
+
+        <!-- BAŞVURULARIM LİSTESİ -->
+        <div class="card">
+            <h2>Başvurularım</h2>
+            <div id="applications-list">
+                <p style="color: var(--gray); font-size: 14px;">Henüz başvuru eklenmemiş.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Basit ve güvenli oturum ve veri yönetimi
+    let currentUser = localStorage.getItem('careerflow_current_user');
+
+    window.onload = function() {
+        if (currentUser) {
+            showApp();
+        }
+    }
+
+    function handleAuth() {
+        const email = document.getElementById('email-input').value.trim();
+        const pass = document.getElementById('password-input').value.trim();
+        const errDiv = document.getElementById('auth-error');
+
+        if (!email || !pass || pass.length < 6) {
+            errDiv.innerText = "Lütfen geçerli bir e-posta ve en az 6 karakterli şifre girin.";
+            return;
+        }
+
+        errDiv.innerText = "";
+        currentUser = email;
+        localStorage.setItem('careerflow_current_user', currentUser);
+        showApp();
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('careerflow_current_user');
+        currentUser = null;
+        document.getElementById('email-input').value = '';
+        document.getElementById('password-input').value = '';
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('app-screen').classList.add('hidden');
+    }
+
+    function showApp() {
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('app-screen').classList.remove('hidden');
+        document.getElementById('current-user-display').innerText = "Giriş yapan: " + currentUser;
+        loadApplications();
+    }
+
+    // Başvuru İşlemleri (Kullanıcıya özel izole veri saklama)
+    function getStorageKey() {
+        return 'careerflow_apps_' + currentUser;
+    }
+
+    function loadApplications() {
+        const listDiv = document.getElementById('applications-list');
+        const apps = JSON.parse(localStorage.getItem(getStorageKey()) || '[]');
+
+        if (apps.length === 0) {
+            listDiv.innerHTML = '<p style="color: var(--gray); font-size: 14px;">Henüz başvuru eklenmemiş.</p>';
+            return;
+        }
+
+        listDiv.innerHTML = '';
+        apps.forEach((app, index) => {
+            listDiv.innerHTML += `
+                <div class="application-item">
+                    <div>
+                        <strong>${app.company}</strong> - <span style="color: var(--primary);">${app.position}</span>
+                        <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">Durum: ${app.status}</div>
+                    </div>
+                    <button class="btn-danger" onclick="deleteApplication(${index})">Sil</button>
+                </div>
+            `;
+        });
+    }
+
+    function addApplication() {
+        const company = document.getElementById('company-input').value.trim();
+        const position = document.getElementById('position-input').value.trim();
+        const status = document.getElementById('status-input').value;
+
+        if (!company || !position) {
+            alert('Lütfen şirket ve pozisyon alanlarını doldurun.');
+            return;
+        }
+
+        const apps = JSON.parse(localStorage.getItem(getStorageKey()) || '[]');
+        apps.push({ company, position, status });
+        localStorage.setItem(getStorageKey(), JSON.stringify(apps));
+
+        document.getElementById('company-input').value = '';
+        document.getElementById('position-input').value = '';
+        loadApplications();
+    }
+
+    function deleteApplication(index) {
+        if (confirm('Bu başvuruyu silmek istediğinize emin misiniz?')) {
+            const apps = JSON.parse(localStorage.getItem(getStorageKey()) || '[]');
+            apps.splice(index, 1);
+            localStorage.setItem(getStorageKey(), JSON.stringify(apps));
+            loadApplications();
+        }
+    }
+
+    // Yapay Zekâ Modülü Simülasyonu (Atölye Kriterlerine Uygun)
+    function generateAILetter() {
+        const target = document.getElementById('ai-target-position').value.trim();
+        const loading = document.getElementById('ai-loading');
+        const resultBox = document.getElementById('ai-result');
+        const textContent = document.getElementById('ai-text-content');
+
+        if (!target) {
+            alert('Lütfen hedeflediğiniz pozisyonu yazın.');
+            return;
+        }
+
+        loading.classList.remove('hidden');
+        resultBox.classList.add('hidden');
+
+        // Yapay zekâ yanıt gecikmesi ve simülasyonu
+        setTimeout(() => {
+            loading.classList.add('hidden');
+            textContent.innerText = `Sayın İlgili, ${target} pozisyonunuz için başvurmak istiyorum. Yönetim Bilişim Sistemleri öğrencisi olarak veri analitiği, süreç yönetimi ve teknik becerilerimle ekibinize değer katabileceğime inanıyorum. Görüşmek dileğiyle.`;
+            resultBox.classList.remove('hidden');
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
